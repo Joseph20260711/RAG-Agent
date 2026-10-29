@@ -1,9 +1,3 @@
-def read_text(path):
-    with open(file=path, mode="r", encoding="utf-8") as f:
-        text = f.read()
-    return text
-
-
 def chunk(text, chunk_size, chunk_overlap, mark):
     # keep sentences complete while chunking
 

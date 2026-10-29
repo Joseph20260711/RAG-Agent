@@ -1,3 +1,6 @@
+[knowledge_base]
+path = "data"
+
 [models]
 chat = "qwen2.5:7b"
 embedding = "nomic-embed-text"

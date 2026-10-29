@@ -1,6 +1,6 @@
 .venv/
 __pycache__/
+.cache/
+*.pdf
 logs/
-knowledge_base.pdf
-knowledge_base.txt
 .DS_Store

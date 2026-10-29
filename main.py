@@ -7,12 +7,18 @@ import ollama
 import chunking
 import embedding
 import logging_utils
+import preprocess
 import prompting
 import retrieving
-from config import CHUNK_OVERLAP, CHUNK_SIZE, EMBEDDING_MODEL, TOP_K
+from config import (
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    EMBEDDING_MODEL,
+    KNOWLEDGE_BASE_PATH,
+    TOP_K,
+)
 
 # hyperparameters
-PATH = "knowledge_base.txt"
 LOG_DIR = "logs"
 MARK = [".", "?", "!", "。", "？", "！", "\n"]
 
@@ -27,7 +33,7 @@ LOG_PATH = os.path.join(LOG_DIR, f"{start_time}.jsonl")
 
 # load the knowledge base
 print("Loading...", end="", flush=True)
-text = chunking.read_text(PATH)
+text = preprocess.load_knowledge_base(KNOWLEDGE_BASE_PATH)
 chunks = chunking.chunk(text, CHUNK_SIZE, CHUNK_OVERLAP, MARK)
 vecs = embedding.embed_chunks(chunks)
 print(f"\r{' ' * len('Loading...')}\r", end="", flush=True)

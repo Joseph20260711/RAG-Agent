@@ -17,11 +17,12 @@ RAG-Agent/
 ├── config.py          # 读取配置
 ├── embedding.py       # 文本向量化
 ├── logging_utils.py   # 日志工具
-├── pdf2txt.py         # PDF 转文本（预处理）
+├── preprocessing.py   # 文本预处理
 ├── prompting.py       # 提示词构造
 ├── retrieving.py      # 检索
 ├── config.toml        # 配置文件
-└── requirements.txt   # Python 依赖
+├── requirements.txt   # Python 依赖
+└── data               # 知识库文件夹
 ```
 
 ## 环境要求
@@ -34,7 +35,7 @@ RAG-Agent/
 ### 1. 获取代码
 
 ```bash
-git clone <你的仓库地址>
+git clone https://github.com/Joseph20260711/RAG-Agent.git
 cd RAG-Agent
 ```
 
@@ -57,14 +58,7 @@ ollama pull nomic-embed-text  # 向量化模型
 
 ### 4. 准备知识库
 
-将知识库文件放入项目根目录，并按格式处理：
-
-- **TXT 文件**：重命名为 `knowledge_base.txt` 即可。
-- **PDF 文件**：重命名为 `knowledge_base.pdf`，然后运行预处理脚本，将其转换为 `knowledge_base.txt`：
-
-  ```bash
-  python pdf2txt.py
-  ```
+将知识库文件放入 `data` 文件夹。
 
 > 注意：目前仅支持单个知识库文件。
 
@@ -106,7 +100,6 @@ python main.py
 
 ## 后续计划
 
-- [ ] 自动识别知识库文件类型并完成预处理
 - [ ] 支持多文件知识库
 - [ ] 将检索改为模型可调用的工具，由模型自主决定是否检索
 
