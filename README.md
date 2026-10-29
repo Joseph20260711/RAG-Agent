@@ -17,7 +17,7 @@ RAG-Agent/
 ├── config.py          # 读取配置
 ├── embedding.py       # 文本向量化
 ├── logging_utils.py   # 日志工具
-├── preprocessing.py   # 文本预处理
+├── preprocess.py      # 文本预处理
 ├── prompting.py       # 提示词构造
 ├── retrieving.py      # 检索
 ├── config.toml        # 配置文件
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 确保 Ollama 服务已启动，然后拉取所需模型：
 
 ```bash
-ollama pull qwen2.5:7b        # 对话模型
+ollama pull qwen3.5:9b        # 对话模型
 ollama pull nomic-embed-text  # 向量化模型
 ```
 
@@ -72,13 +72,13 @@ python main.py
 
 目前配置项直接写在源码中，修改后重新运行即可生效：
 
-| 配置项 | 当前值 | 所在文件 |
+| 配置项 | 当前值 | 名称 |
 | --- | --- | --- |
-| 对话模型 | `qwen2.5:7b` | `prompting.py` |
-| 向量化模型 | `nomic-embed-text` | `retrieving.py` |
-| 切分长度 | 500 字符 | `main.py` |
-| 重叠长度 | 100 字符 | `main.py` |
-| 检索条数 | 10 | `main.py` |
+| 对话模型 | `qwen3.5:9b` | `chat` |
+| 向量化模型 | `nomic-embed-text` | `embedding` |
+| 切分长度 | 500 字符 | `chunk_size` |
+| 重叠长度 | 100 字符 | `chunk_overlap` |
+| 检索条数 | 10 | `top_k` |
 
 ## 工作流程
 
@@ -89,14 +89,12 @@ python main.py
    - 切分后向两端延伸至自然断点，保证片段语义完整
 3. **向量化**：用 Ollama 的 `nomic-embed-text` 模型把片段转为向量。
 4. **检索**：用 numpy 计算查询与片段的相似度，取前 10 条。
-5. **生成**：将检索到的片段与问题拼成提示词，交给 `qwen2.5:7b` 生成回答。
+5. **生成**：将检索到的片段与问题拼成提示词，交给 `qwen3.5:9b` 生成回答。
 
 ## 已知限制
 
-- 使用 7B 规模的本地模型，复杂推理与长上下文能力有限
-- 仅支持单一知识库文件
+- 使用 9B 规模的本地模型，复杂推理与长上下文能力有限
 - 检索流程由代码固定执行，而不是由模型自主决定是否检索
-- 使用不够便捷：知识库需要手动重命名，PDF 需要手动预处理，配置项分散在多个源文件中
 
 ## 后续计划
 
