@@ -6,7 +6,6 @@
 """
 
 import re
-import sys
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -16,7 +15,7 @@ CACHE_DIR = PROJECT_ROOT / ".cache"
 SUPPORTED_SUFFIXES = {".pdf", ".txt"}
 
 
-# ---------- 文本清洗（沿用原 pdf2txt.py 的逻辑） ----------
+# ---------- 文本清洗 ----------
 
 
 def collapse_repeated_chars(text, min_repeat=2):
@@ -38,10 +37,11 @@ def remove_space_between_cjk(text):
 # ---------- 文件定位 ----------
 
 
-def find_source_file(path):
-    """根据配置的路径找到唯一的知识库文件。
+def find_source_files(path):
+    """根据配置的路径找到所有知识库文件。
 
-    path 可以是文件，也可以是目录；相对路径以项目根目录为基准。
+    path 可以是文件，也可以是目录（只扫描该目录本层，不递归）；
+    相对路径以项目根目录为基准。
     """
     path = Path(path)
     if not path.is_absolute():
@@ -52,7 +52,7 @@ def find_source_file(path):
             raise ValueError(
                 f"不支持的文件类型：{path.name}（目前支持：{', '.join(sorted(SUPPORTED_SUFFIXES))}）"
             )
-        return path
+        return [path]
 
     if path.is_dir():
         files = sorted(
@@ -64,10 +64,7 @@ def find_source_file(path):
             raise FileNotFoundError(
                 f"目录 {path} 中没有找到知识库文件（支持：{', '.join(sorted(SUPPORTED_SUFFIXES))}）"
             )
-        if len(files) > 1:
-            names = "、".join(p.name for p in files)
-            raise ValueError(f"目前只支持单个知识库文件，但 {path} 中有多个：{names}")
-        return files[0]
+        return files
 
     raise FileNotFoundError(f"知识库路径不存在：{path}")
 
@@ -92,7 +89,6 @@ def extract_pdf_text(pdf_path):
     if reader.is_encrypted and reader.decrypt("") == 0:
         raise ValueError(f"{pdf_path.name} 已加密，请先解除密码保护")
 
-    total = len(reader.pages)
     pages_text = []
     for i, page in enumerate(reader.pages, start=1):
         pages_text.append(page.extract_text() or "")
@@ -124,19 +120,14 @@ def _cache_is_fresh(pdf_path, cache_path):
 # ---------- 对外接口 ----------
 
 
-def load_knowledge_base(path, force=False):
-    """读取知识库并返回纯文本。
-
-    force=True 时忽略缓存，强制重新转换 PDF。
-    """
-    source = find_source_file(path)
+def _load_one(source, force=False):
+    """读取单个知识库文件，返回纯文本（逻辑与原 load_knowledge_base 相同）。"""
     suffix = source.suffix.lower()
 
     if suffix == ".txt":
         print(f"读取知识库：{source.name}")
         return read_text_file(source)
 
-    # PDF：优先使用缓存
     cache_path = _cache_path(source)
     if not force and _cache_is_fresh(source, cache_path):
         return cache_path.read_text(encoding="utf-8")
@@ -147,7 +138,6 @@ def load_knowledge_base(path, force=False):
     return text
 
 
-if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else "data"
-    result = load_knowledge_base(target, force=True)
-    print(f"共 {len(result)} 字符，开头预览：\n{result[:200]}")
+def load_knowledge_base(path, force=False):
+    """读取知识库，返回 [(文件名, 文本), ...]。"""
+    return [(f.name, _load_one(f, force)) for f in find_source_files(path)]

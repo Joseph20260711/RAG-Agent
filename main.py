@@ -33,8 +33,11 @@ LOG_PATH = os.path.join(LOG_DIR, f"{start_time}.jsonl")
 
 # load the knowledge base
 print("Loading...", end="", flush=True)
-text = preprocess.load_knowledge_base(KNOWLEDGE_BASE_PATH)
-chunks = chunking.chunk(text, CHUNK_SIZE, CHUNK_OVERLAP, MARK)
+chunks, sources = [], []
+for name, text in preprocess.load_knowledge_base(KNOWLEDGE_BASE_PATH):
+    file_chunks = chunking.chunk(text, CHUNK_SIZE, CHUNK_OVERLAP, MARK)
+    chunks.extend(file_chunks)
+    sources.extend([name] * len(file_chunks))
 vecs = embedding.embed_chunks(chunks)
 print(f"\r{' ' * len('Loading...')}\r", end="", flush=True)
 
@@ -44,6 +47,7 @@ logging_utils.log(
         "type": "chunking",
         "chunk_size": CHUNK_SIZE,
         "chunk_overlap": CHUNK_OVERLAP,
+        "num_files": len(set(sources)),
         "num_chunks": len(chunks),
         "chunk_lengths": [len(c) for c in chunks],
     },
@@ -56,10 +60,8 @@ while True:
     if question.strip().lower() == "exit":
         break
     query = ollama.embeddings(model=EMBEDDING_MODEL, prompt=question).embedding
-
-    # retrieve in the knowledge base
     idxs, vals = retrieving.retrieve(query, vecs, TOP_K)
-    relevant_chunks = [chunks[i] for i in idxs]
+    relevant_chunks = [f"[来源：{sources[i]}]\n{chunks[i]}" for i in idxs]
 
     logging_utils.log(
         LOG_PATH,
@@ -67,7 +69,12 @@ while True:
             "type": "retrieving",
             "question": question,
             "results": [
-                {"chunk_index": int(i), "similarity": v, "text": chunks[i]}
+                {
+                    "chunk_index": int(i),
+                    "source": sources[i],
+                    "similarity": v,
+                    "text": chunks[i],
+                }
                 for i, v in zip(idxs, vals)
             ],
         },

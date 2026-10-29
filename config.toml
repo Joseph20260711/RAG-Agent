@@ -2,7 +2,7 @@
 path = "data"
 
 [models]
-chat = "qwen2.5:7b"
+chat = "qwen3.5:9b"
 embedding = "nomic-embed-text"
 
 [chunking]
