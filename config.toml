@@ -1,0 +1,10 @@
+[models]
+chat = "qwen2.5:7b"
+embedding = "nomic-embed-text"
+
+[chunking]
+chunk_size = 500
+chunk_overlap = 100
+
+[retrieving]
+top_k = 10

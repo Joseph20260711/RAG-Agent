@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+logs/
+knowledge_base.pdf
+knowledge_base.txt
+.DS_Store
